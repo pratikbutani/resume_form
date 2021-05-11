@@ -1,4 +1,6 @@
 class Strings {
+  static const String API = "http://www.findgoodresource.com/ws/insert.php";
+
   static const String ENTER_FULL_NAME = "Enter Full Name";
   static const String HEIGHEST_EDUCATION_QUALIFICATION =
       "Heighest Education Qualification";
@@ -20,6 +22,7 @@ class Strings {
   static const String DROP_CV_HERE = 'Drop CV Here';
   static const String SUBMIT = 'Submit';
   static const String PERCENTAGE = 'Percentage';
+  static const String YEARS = 'Years';
   static const String MORNING = 'Morning';
   static const String NIGHT = 'Night';
   static const String DAY = 'Day';
@@ -31,18 +34,6 @@ class Strings {
   static const String YES = 'YES';
   static const String NO = 'NO';
 
-
-
-
-
-
-
-
-
-
-
-
-
   //validation
   static const String FULL_NAME_REQUIRED = "Full Name Required";
   static const String PROFESSIONAL_QUALIFICATION_REQUIRED =
@@ -52,14 +43,11 @@ class Strings {
   static const String CURRENT_CTC_REQUIRED = 'Current CTC Required';
   static const String EXPECTED_SALARY_REQUIRED = 'Expected Salary required';
   static const String NOTICE_PERIOD_REQUIRED = 'Notice Period Required';
-  static const String PREFERRED_LOCATION_REQUIRED = 'Preferred Location Required';
-  static const String PLEASE_SELECT_HEIGHEST_EDUCATION = 'Please select heighest Education';
-  static const String PLESE_SELECT_PROFESSIONAL_QUALIFICATION= 'Please select Professional Qualification';
-  static const String PLESE_SELECT_UPLOAD_CV= 'Please Upload CV';
-
-
-
-
-
-
+  static const String PREFERRED_LOCATION_REQUIRED =
+      'Preferred Location Required';
+  static const String PLEASE_SELECT_HEIGHEST_EDUCATION =
+      'Please select heighest Education';
+  static const String PLESE_SELECT_PROFESSIONAL_QUALIFICATION =
+      'Please select Professional Qualification';
+  static const String PLESE_SELECT_UPLOAD_CV = 'Please Upload CV';
 }

@@ -1,13 +1,20 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:resume_form/data/api_handler.dart';
 import 'package:resume_form/drop_down_view.dart';
 import 'package:resume_form/extensions/widget_extensions.dart';
+import 'package:resume_form/models/accounting_exp_model.dart';
+import 'package:resume_form/models/exp_request_model.dart';
 import 'package:resume_form/models/software_model.dart';
-import 'package:resume_form/ui/raw_accounting_exp.dart';
 import 'package:resume_form/ui/raw_percentage_view.dart';
+import 'package:resume_form/ui/raw_softwere_known_view.dart';
+import 'package:resume_form/viewUtility/viewUtil.dart';
+
 import '../constants/constant.dart';
 import '../constants/strings.dart';
 import '../custom_widget/custom_textview.dart';
@@ -32,6 +39,7 @@ class _ResumeFormState extends State<ResumeForm> {
       new TextEditingController();
   TextEditingController _otherProfessionalFieldController =
       new TextEditingController();
+  TextEditingController _tf = new TextEditingController();
 
   TextEditingController _totalExperienceController =
       new TextEditingController();
@@ -41,8 +49,13 @@ class _ResumeFormState extends State<ResumeForm> {
   TextEditingController _preferredLocationController =
       new TextEditingController()..text = 'Ahmedabad';
   String cvPath = '';
+  File docFile;
+  String uploadedFileName = '';
+  static final _formKey = new GlobalKey<FormState>();
 
-  var _formKey = GlobalKey<FormState>();
+  /// just  define _formkey with static final
+
+  // var _formKey = GlobalKey<FormState>();
 
   String _selectedHighEducation, _selectedProfessionalQualification;
 
@@ -54,7 +67,7 @@ class _ResumeFormState extends State<ResumeForm> {
   List<SoftwareModel> softwareKnownList = List()
     ..addAll(Constants.softwareList);
 
-  List<SoftwareModel> countryList = List()..addAll(Constants.countryList);
+  List<AccountingExpModel> countryList = List()..addAll(Constants.countryList);
 
   setSelectedRadioTile(int val) {
     setState(() {
@@ -116,7 +129,6 @@ class _ResumeFormState extends State<ResumeForm> {
                     ),
                   ],
                 ).addBorder(borderRadius: 12, padding: 10),
-
                 SizedBox(height: 15),
                 Column(
                   children: [
@@ -125,7 +137,7 @@ class _ResumeFormState extends State<ResumeForm> {
                       physics: const NeverScrollableScrollPhysics(),
                       shrinkWrap: true,
                       itemBuilder: (context, index) {
-                        return RawPercentageView(
+                        return RawSoftwereKnownView(
                           index: index,
                           onRemoveClick: () {
                             softwareKnownList.removeAt(index);
@@ -133,7 +145,8 @@ class _ResumeFormState extends State<ResumeForm> {
                           },
                           softwareModel: softwareKnownList[index],
                           onValueChange: (d) {
-                            softwareKnownList[index].percentage = d;
+                            softwareKnownList[index].isEnabled = d;
+                            setState(() {});
                           },
                         );
                         /*getPercentageViewRow(
@@ -145,7 +158,7 @@ class _ResumeFormState extends State<ResumeForm> {
                       _displayAddSoftwareInputDialog(context, (title) {
                         softwareKnownList.add(SoftwareModel(
                             softwareName: title,
-                            percentage: 0,
+                            isEnabled: false,
                             isCancelable: true));
                         setState(() {});
                       });
@@ -153,7 +166,6 @@ class _ResumeFormState extends State<ResumeForm> {
                   ],
                 ).addBorder(borderRadius: 12, padding: 10),
                 SizedBox(height: 15),
-
                 CustomTextField(
                   controller: _outsourcingExperienceController,
                   hintName: Strings.OUTSOURCING_EXP_IN_MONTH,
@@ -168,7 +180,7 @@ class _ResumeFormState extends State<ResumeForm> {
                               index: e.index,
                               softwareModel: countryList[e.index],
                               onValueChange: (d) {
-                                countryList[e.index].percentage = d;
+                                countryList[e.index].years = d;
                               },
                             ))))
                     .addBorder(borderRadius: 12, padding: 10),
@@ -182,7 +194,6 @@ class _ResumeFormState extends State<ResumeForm> {
                   textInputType: TextInputType.number,
                 ),
                 SizedBox(height: 15),
-
                 CustomTextField(
                   controller: _currentCTCController,
                   hintName: Strings.CURRENT_CTC,
@@ -190,7 +201,6 @@ class _ResumeFormState extends State<ResumeForm> {
                   textInputType: TextInputType.number,
                 ),
                 SizedBox(height: 15),
-
                 CustomTextField(
                   controller: _expectedCTCController,
                   hintName: Strings.EXPECTED_SALARY_YEARLY,
@@ -211,20 +221,19 @@ class _ResumeFormState extends State<ResumeForm> {
                   validation: Strings.PREFERRED_LOCATION_REQUIRED,
                   textInputType: TextInputType.name,
                 ),
-
                 SizedBox(height: 15),
                 getTitleView(Strings.FLEXIBLE_FOR_SHIFT),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: <Widget>[
                     getRadioButton(
-                        id: selectedOptionId, typeValue: 1, title: Strings.YES),
+                        id: selectedOptionId, typeValue: 1, title: Strings.NO),
                     getRadioButton(
-                        id: selectedOptionId, typeValue: 2, title: Strings.NO),
+                        id: selectedOptionId, typeValue: 0, title: Strings.YES),
                   ],
                 ),
                 Visibility(
-                  visible: selectedOptionId == 2,
+                  visible: selectedOptionId == 0,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: <Widget>[
@@ -246,7 +255,10 @@ class _ResumeFormState extends State<ResumeForm> {
                     ],
                   ),
                 ),
-                getButton(Strings.DROP_CV_HERE, () {
+                getButton(
+                    uploadedFileName != ''
+                        ? uploadedFileName
+                        : Strings.DROP_CV_HERE, () {
                   getPdfAndUpload();
                 }),
                 getButton(Strings.SUBMIT, () {
@@ -257,6 +269,8 @@ class _ResumeFormState extends State<ResumeForm> {
                     } else if (isNull(_selectedProfessionalQualification)) {
                       showInSnackBar(
                           Strings.PLESE_SELECT_PROFESSIONAL_QUALIFICATION);
+                    } else if (isNull(getSoftwareKnown())) {
+                      showInSnackBar('Please Select Any Software From List');
                     } else if (isNull(cvPath)) {
                       showInSnackBar(Strings.PLESE_SELECT_UPLOAD_CV);
                     } else {
@@ -275,16 +289,37 @@ class _ResumeFormState extends State<ResumeForm> {
                       print(
                           "FlexibleShift Selected ${selectedOptionId == 1 ? "Yes" : "NO"}");
                       print("cvPath $cvPath");
+                      ViewUtil.showLoaderDialog(context);
+
+                      ApiHandler().uploadFile(
+                          body: getData(),
+                          filePath: cvPath,
+                          onComplate: () {
+                            Navigator.pop(context);
+                          },
+                          onSucess: (msg) {
+                            showInSnackBar(msg);
+                          });
+
                     }
                   }
                 })
-                //_buttonSubmit()
               ],
             ),
           ).paddingAll(24),
         ),
       ),
     );
+  }
+
+  String getSelectedDayType(int type) {
+    if (type == 1) {
+      return Strings.MORNING;
+    } else if (type == 2) {
+      return Strings.NIGHT;
+    } else {
+      return Strings.DAY;
+    }
   }
 
   Widget getTitleView(String text) {
@@ -303,10 +338,15 @@ class _ResumeFormState extends State<ResumeForm> {
       type: FileType.custom,
       allowedExtensions: ['pdf'],
     );
-    String fileName = '${randomName}.pdf';
-    print(fileName);
-    cvPath = file.paths.first;
-    print(file.paths.first);
+    if (file != null) {
+      print("originfilename ${file.files.first.name}");
+      uploadedFileName = file.files.first.name;
+      String fileName = '${randomName}.pdf';
+      print(fileName);
+      cvPath = file.paths.first;
+      print(file.paths.first);
+      setState(() {});
+    }
   }
 
   Widget getRadioButton(
@@ -407,6 +447,8 @@ class _ResumeFormState extends State<ResumeForm> {
       },
       child: Text(
         title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(color: Colors.white, fontSize: 20),
       ),
     ).setFullWidth();
@@ -422,5 +464,50 @@ class _ResumeFormState extends State<ResumeForm> {
       return true;
     }
     return false;
+  }
+
+  String getSoftwareKnown() {
+    String softwareknown = '';
+    for (int i = 0; i < softwareKnownList.length; i++) {
+      if (softwareKnownList[i].isEnabled) {
+        if (softwareknown == '') {
+          softwareknown = softwareKnownList[i].softwareName;
+        } else {
+          softwareknown =
+              softwareknown + "," + softwareKnownList[i].softwareName;
+        }
+      }
+    }
+    return softwareknown;
+  }
+
+  String getAccountingExp() {
+    List<ExpRequestModel> expList = List();
+    for (int i = 0; i < countryList.length; i++) {
+      expList.add(ExpRequestModel(
+          countryId: countryList[i].index + 1, exp: countryList[i].years));
+    }
+    return jsonEncode(expList);
+  }
+
+  Map<String, dynamic> getData() {
+    return {
+      'fullName': _firstNameController.text.trim(),
+      'heighestEducationQualification': _selectedHighEducation,
+      'professionalQualification': _selectedProfessionalQualification == "OTHER"
+          ? _otherProfessionalFieldController.text.trim()
+          : _selectedProfessionalQualification,
+      'softwareKnown': getSoftwareKnown(),
+      'outsourcingExp': _outsourcingExperienceController.text.trim(),
+      'accountExpCountryWise': getAccountingExp(),
+      'totalExp': _totalExperienceController.text.trim(),
+      'currentSalary': _currentCTCController.text.trim(),
+      'expectedSalary': _expectedCTCController.text.trim(),
+      'noticePeriod': _noticePeriodController.text.trim(),
+      'prefferedLocation': _preferredLocationController.text.trim(),
+      'flexibleForShift': selectedOptionId.toString(),
+      'selectedShift':
+          selectedOptionId == 0 ? getSelectedDayType(selectedDayType) : ''
+    };
   }
 }

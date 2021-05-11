@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:resume_form/constants/strings.dart';
 import 'package:resume_form/extensions/widget_extensions.dart';
+import 'package:resume_form/models/accounting_exp_model.dart';
 import 'package:resume_form/models/software_model.dart';
 
 class RawPercentageView extends StatelessWidget {
-  final SoftwareModel softwareModel;
+  final AccountingExpModel softwareModel;
   final int index;
   final VoidCallback onRemoveClick;
-  final Function(double) onValueChange;
+  final Function(int) onValueChange;
 
   const RawPercentageView(
       {Key key,
@@ -25,13 +26,13 @@ class RawPercentageView extends StatelessWidget {
         Expanded(child: Text(softwareModel.softwareName).paddingAll(8)),
         Expanded(
             child: TextFormField(
-          initialValue: softwareModel.percentage == 0
+          initialValue: softwareModel.years == 0
               ? ''
-              : softwareModel.percentage.toString(),
+              : softwareModel.years.toString(),
           keyboardType: TextInputType.number,
           onChanged: (str) {
             if (str != '') {
-              onValueChange(double.parse(str));
+              onValueChange(int.parse(str));
               //   softwareKnownList[index].percentage = double.parse(str);
             }else{
               onValueChange(0);
@@ -44,11 +45,12 @@ class RawPercentageView extends StatelessWidget {
           ],
           decoration: InputDecoration(
               contentPadding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-              hintText: Strings.PERCENTAGE,
+              hintText: Strings.YEARS,
               counterText: '',
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(5))),
         ).paddingAll(5)),
+/*
         Visibility(
           visible: softwareModel.isCancelable,
           child: IconButton(
@@ -58,11 +60,14 @@ class RawPercentageView extends StatelessWidget {
               ),
               onPressed: () {
                 onRemoveClick();
-                /*  softwareKnownList.removeAt(index);
+                */
+/*  softwareKnownList.removeAt(index);
                 setState(() {});
-              */
+              *//*
+
               }),
         )
+*/
       ],
     );
   }

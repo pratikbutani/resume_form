@@ -1,0 +1,4 @@
+io/flutter/plugins/GeneratedPluginRegistrant.java
+ io.flutter.plugins.GeneratedPluginRegistrant
+com/swastik/resume/resume_form/BuildConfig.java
+ com.swastik.resume.resume_form.BuildConfig

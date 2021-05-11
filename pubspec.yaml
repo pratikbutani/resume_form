@@ -30,6 +30,7 @@ dependencies:
   cupertino_icons: ^1.0.0
   multi_select_flutter: ^3.1.8
   file_picker: any
+  http: any
 
 dev_dependencies:
   flutter_test:
